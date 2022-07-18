@@ -1,0 +1,66 @@
+/* Query 1 */
+SELECT Art.ArtistId,
+       Art.Name,
+       G.Name Genre,
+       COUNT(T.Name) Tracks
+FROM Artist Art
+JOIN Album Alb ON Alb.ArtistId = Art.ArtistId
+JOIN Track T ON Alb.AlbumId = T.AlbumId
+JOIN Genre G ON T.GenreId = G.GenreId
+WHERE G.Name = 'Rock'
+GROUP BY 1,
+         2,
+         3
+ORDER BY 4 DESC
+LIMIT 10;
+
+
+
+/* Query 2 */
+SELECT Art.Name ArtistName,
+       SUM(IL.Quantity * IL.UnitPrice) TotalSpent
+FROM Artist Art
+JOIN Album Alb ON Art.ArtistId = Alb.ArtistId
+JOIN Track T ON T.AlbumId = Alb.AlbumId
+JOIN InvoiceLine IL ON T.TrackId = IL.Trackid
+JOIN Invoice I ON IL.InvoiceId = I.InvoiceId
+JOIN Customer C ON C.CustomerId = I.CustomerId
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 10;
+
+
+
+/* Query 3 */
+SELECT E.FirstName || ' ' || E.LastName AS EmployeeName,
+       E.Title,
+       round(SUM(I.Total)) SalesAmount
+FROM Employee E
+JOIN Customer C ON E.EmployeeId = C.SupportRepId
+JOIN Invoice I ON C.CustomerId = I.CustomerId
+GROUP BY 1,
+         2
+ORDER BY 2 DESC;
+
+
+
+/* Query 4 */
+WITH tab1 AS
+  (SELECT C.Country,
+          SUM(I.Total) TotalSpent,
+          C.FirstName || ' ' || C.LastName AS CustomerName,
+          C.CustomerId
+   FROM Customer C
+   JOIN Invoice I ON C.CustomerId = I.CustomerId
+   GROUP BY 4)
+SELECT tab1.*
+FROM tab1
+JOIN
+  (SELECT Country,
+          MAX(TotalSpent) MaxTotalSpent,
+          CustomerName,
+          CustomerId
+   FROM tab1
+   GROUP BY 1)tab2 ON tab1.Country = tab2.Country
+WHERE tab1.TotalSpent = tab2.MaxTotalSpent
+ORDER BY 1;
